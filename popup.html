@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Comment Assistant</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <section id="onboarding" hidden>
+        <header>
+          <p class="eyebrow">First-time setup</p>
+          <h1>Comment Assistant</h1>
+          <p class="intro">Connect OpenRouter, then build a reusable backlink catalog from your website.</p>
+        </header>
+
+        <div class="step-indicator" aria-label="Onboarding progress">
+          <span class="active" data-step-dot="credentials">1</span>
+          <i></i>
+          <span data-step-dot="domain">2</span>
+        </div>
+
+        <section id="onboarding-credentials" class="onboarding-step">
+          <div class="section-heading">
+            <p class="step-label">Step 1 of 2</p>
+            <h2>Verify OpenRouter</h2>
+            <p>Your key must have at least $1.00 of verifiable available credit.</p>
+          </div>
+          <label>
+            <span>OpenRouter API key <strong>Required</strong></span>
+            <input id="onboardApiKey" type="password" autocomplete="off" placeholder="sk-or-v1-…">
+          </label>
+          <label>
+            <span>Model</span>
+            <input id="onboardModel" type="text" list="models" value="openrouter/auto" placeholder="openrouter/auto">
+          </label>
+          <div id="onboard-credential-status" class="inline-status" role="status" aria-live="polite"></div>
+          <button id="verify-onboarding" type="button">Verify and continue</button>
+        </section>
+
+        <section id="onboarding-domain" class="onboarding-step" hidden>
+          <div class="section-heading">
+            <p class="step-label">Step 2 of 2</p>
+            <h2>Build backlink catalog</h2>
+            <p>The extension crawls internal pages and asks OpenRouter to create relevance context for each one.</p>
+          </div>
+          <div id="onboarding-domain-fields"></div>
+          <div id="onboard-crawl-status" class="inline-status" role="status" aria-live="polite"></div>
+          <button id="start-onboarding-crawl" type="button">Crawl website and finish</button>
+        </section>
+      </section>
+
+      <section id="app-shell" hidden>
+        <header>
+          <p class="eyebrow">OpenRouter-powered</p>
+          <div class="header-title-row">
+            <h1>Comment Assistant</h1>
+            <span id="header-plan-badge" class="plan-badge" aria-label="Current plan">Free</span>
+          </div>
+          <p class="intro">Manage generation, identities, backlink domains, and submission history.</p>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Comment Assistant sections">
+          <button id="tab-api" class="active" type="button" role="tab" aria-selected="true" aria-controls="panel-api" data-tab="api">API</button>
+          <button id="tab-profile" type="button" role="tab" aria-selected="false" aria-controls="panel-profile" data-tab="profile">Profile</button>
+          <button id="tab-domains" type="button" role="tab" aria-selected="false" aria-controls="panel-domains" data-tab="domains">Domains <span id="domain-count">0</span></button>
+          <button id="tab-discovery" type="button" role="tab" aria-selected="false" aria-controls="panel-discovery" data-tab="discovery">Find Sites</button>
+          <button id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="panel-history" data-tab="history">History <span id="history-count">0</span></button>
+          <button id="tab-license" type="button" role="tab" aria-selected="false" aria-controls="panel-license" data-tab="license">License</button>
+        </nav>
+
+        <form id="settings-form">
+          <section id="panel-api" class="tab-panel active" role="tabpanel" aria-labelledby="tab-api" data-panel="api">
+            <div class="workflow-option extension-state-option">
+              <label class="toggle prominent">
+                <input id="extensionEnabled" name="extensionEnabled" type="checkbox">
+                <span>Enable extension</span>
+              </label>
+              <small>When disabled, all controls and automatic activity stop on Google Search and individual pages. Settings and saved history remain available here.</small>
+            </div>
+            <label>
+              <span>OpenRouter API key <strong>Required</strong></span>
+              <input id="apiKey" name="apiKey" type="password" autocomplete="off" placeholder="sk-or-v1-…">
+            </label>
+            <label>
+              <span>Model</span>
+              <input id="model" name="model" type="text" list="models" placeholder="openrouter/auto">
+            </label>
+            <label>
+              <span>Extra comment guidance</span>
+              <textarea id="additionalInstructions" name="additionalInstructions" rows="5" placeholder="For example: Keep the tone technical and end with one specific question."></textarea>
+            </label>
+            <div id="credit-summary" class="info-card"></div>
+          </section>
+
+          <section id="panel-profile" class="tab-panel" role="tabpanel" aria-labelledby="tab-profile" data-panel="profile" hidden>
+            <div class="two-column">
+              <div class="identity-field">
+                <label>
+                  <span>Your name</span>
+                  <input id="commenterName" name="commenterName" type="text" autocomplete="name" placeholder="Jane Smith">
+                </label>
+                <label class="toggle">
+                  <input id="autoGenerateName" name="autoGenerateName" type="checkbox">
+                  <span>Generate with Faker</span>
+                </label>
+                <small id="faker-name-license-note" class="license-restriction" hidden>Faker identities require a paid plan.</small>
+              </div>
+              <div class="identity-field">
+                <label>
+                  <span>Your email</span>
+                  <input id="commenterEmail" name="commenterEmail" type="email" autocomplete="email" placeholder="jane@example.com">
+                </label>
+                <label class="toggle">
+                  <input id="autoGenerateEmail" name="autoGenerateEmail" type="checkbox">
+                  <span>Generate with Faker</span>
+                </label>
+                <small id="faker-email-license-note" class="license-restriction" hidden>Faker identities require a paid plan.</small>
+              </div>
+            </div>
+            <div class="workflow-option">
+              <label class="toggle prominent">
+                <input id="autoPost" name="autoPost" type="checkbox">
+                <span>Auto-post after generation</span>
+              </label>
+              <small>Runs native validation and activates the website's own submit control.</small>
+            </div>
+            <div class="workflow-option">
+              <label class="toggle prominent">
+                <input id="hideCommentedPages" name="hideCommentedPages" type="checkbox">
+                <span>Hide on pages already commented</span>
+              </label>
+              <small>Enabled by default. Matching uses the page's canonical URL and local submission history.</small>
+            </div>
+            <div class="workflow-option">
+              <label class="toggle prominent">
+                <input id="stopRetryingFailedComments" name="stopRetryingFailedComments" type="checkbox">
+                <span>Stop retrying failed comment submissions</span>
+              </label>
+              <label class="retry-limit" for="maxCommentAttempts">
+                <span>Maximum attempts per page</span>
+                <input id="maxCommentAttempts" name="maxCommentAttempts" type="number" min="1" max="10" step="1" inputmode="numeric">
+              </label>
+              <small>Enabled by default with 3 attempts. Only an actual website submission failure counts toward the limit.</small>
+            </div>
+            <div class="workflow-option">
+              <span class="option-title">Backlink acceptance checks</span>
+              <div class="verification-settings">
+                <label for="backlinkCheckFrequencyMinutes">
+                  <span>Check every (minutes)</span>
+                  <input id="backlinkCheckFrequencyMinutes" name="backlinkCheckFrequencyMinutes" type="number" min="1" max="10080" step="1" inputmode="numeric">
+                </label>
+                <label for="unverifiedHistoryRetentionDays">
+                  <span>Remove if unconfirmed after (days)</span>
+                  <input id="unverifiedHistoryRetentionDays" name="unverifiedHistoryRetentionDays" type="number" min="1" max="365" step="1" inputmode="numeric">
+                </label>
+                <label for="backlinkCheckLinksPerRun">
+                  <span>Links to process at a time</span>
+                  <input id="backlinkCheckLinksPerRun" name="backlinkCheckLinksPerRun" type="number" min="1" max="500" step="1" inputmode="numeric">
+                </label>
+                <label for="backlinkCheckBatchSize">
+                  <span>Batch size</span>
+                  <input id="backlinkCheckBatchSize" name="backlinkCheckBatchSize" type="number" min="1" max="100" step="1" inputmode="numeric">
+                </label>
+              </div>
+              <small>The page source is checked for the submitted backlink. Links are processed in concurrent batches. Accepted entries are kept; only unconfirmed entries expire.</small>
+            </div>
+          </section>
+
+          <section id="panel-domains" class="tab-panel" role="tabpanel" aria-labelledby="tab-domains" data-panel="domains" hidden>
+            <div class="domain-toolbar">
+              <label>
+                <span>Active backlink domain</span>
+                <select id="activeDomainId"></select>
+              </label>
+              <button id="new-domain" class="secondary" type="button">Add domain</button>
+            </div>
+            <small id="domain-license-note" class="license-restriction" hidden></small>
+            <div id="domain-fields"></div>
+            <div class="domain-actions">
+              <button id="start-domain-crawl" type="button">Crawl and analyze</button>
+              <button id="delete-domain" class="secondary danger" type="button">Delete active</button>
+            </div>
+            <div id="domain-crawl-status" class="inline-status" role="status" aria-live="polite"></div>
+            <div id="domain-summary" class="domain-summary"></div>
+          </section>
+
+          <section id="panel-discovery" class="tab-panel" role="tabpanel" aria-labelledby="tab-discovery" data-panel="discovery" hidden>
+            <div class="section-heading">
+              <p class="step-label">Guided discovery</p>
+              <h2>Find websites with comments</h2>
+              <p>Enter your niche and choose a search preset built from common comment-form signals. The extension will inspect the Google results automatically.</p>
+            </div>
+            <div class="discovery-card">
+              <label for="discovery-niche">
+                <span>Niche or topic</span>
+                <input id="discovery-niche" type="search" autocomplete="off" placeholder="For example: home gardening">
+              </label>
+              <label for="discovery-footprint">
+                <span>Search preset</span>
+                <select id="discovery-footprint">
+                  <option value="(&quot;leave a reply&quot; OR &quot;post comment&quot; OR &quot;your email address will not be published&quot;)">All common WordPress signals — Recommended</option>
+                  <option value="&quot;leave a reply&quot;">WordPress — Leave a Reply</option>
+                  <option value="&quot;post comment&quot;">WordPress — Post Comment</option>
+                  <option value="&quot;your email address will not be published&quot;">WordPress — Email notice</option>
+                  <option value="&quot;save my name, email, and website in this browser&quot;">WordPress — Saved-details notice</option>
+                  <option value="&quot;cancel reply&quot;">WordPress — Reply-enabled comments</option>
+                  <option value="&quot;name&quot; &quot;email&quot; &quot;website&quot; &quot;comment&quot;">Generic — Comment form fields</option>
+                  <option value="__custom__">Custom footprint…</option>
+                </select>
+              </label>
+              <label id="discovery-custom-field" for="discovery-custom-footprint" hidden>
+                <span>Custom footprint</span>
+                <input id="discovery-custom-footprint" type="text" autocomplete="off" spellcheck="false" placeholder="For example: &quot;join the discussion&quot;">
+                <small>Use quoted phrases or Google operators such as site: and inurl:.</small>
+              </label>
+              <label for="discovery-freshness">
+                <span>Freshness</span>
+                <select id="discovery-freshness">
+                  <option value="">Any time</option>
+                  <option value="month">Past month</option>
+                  <option value="year">Past year</option>
+                </select>
+              </label>
+              <div class="discovery-query-preview" aria-live="polite">
+                <span>Google query</span>
+                <code id="discovery-query-preview">("leave a reply" OR "post comment" OR "your email address will not be published")</code>
+              </div>
+              <button id="open-discovery-search" type="button">Find comment websites</button>
+            </div>
+            <div id="discovery-status" class="inline-status" role="status" aria-live="polite"></div>
+            <div class="info-card">On the Google results page, supported websites will be marked automatically. Pages already saved in Comment History are skipped.</div>
+          </section>
+
+          <section id="panel-history" class="tab-panel" role="tabpanel" aria-labelledby="tab-history" data-panel="history" hidden>
+            <div class="history-heading">
+              <div>
+                <h2>Submitted comments</h2>
+                <p>History is stored locally without an entry cap and is not used for generation.</p>
+              </div>
+              <div class="history-heading-actions">
+                <button id="check-history" class="secondary" type="button">Check due</button>
+                <button id="clear-history" class="secondary danger" type="button">Clear all</button>
+              </div>
+            </div>
+            <div class="history-filters" aria-label="History filters">
+              <label>
+                <span>Status</span>
+                <select id="history-filter-status">
+                  <option value="all">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="untracked">No backlink</option>
+                </select>
+              </label>
+              <label>
+                <span>Search</span>
+                <input id="history-filter-search" type="search" placeholder="Page, URL, or comment">
+              </label>
+              <label>
+                <span>From</span>
+                <input id="history-filter-from" type="date">
+              </label>
+              <label>
+                <span>To</span>
+                <input id="history-filter-to" type="date">
+              </label>
+              <div class="history-filter-actions">
+                <button id="apply-history-filters" class="secondary" type="button">Apply filters</button>
+                <button id="reset-history-filters" class="secondary" type="button">Reset</button>
+                <button id="export-history" type="button">Export CSV</button>
+              </div>
+              <small id="history-export-license-note" class="license-restriction wide-note" hidden>CSV export requires a paid plan.</small>
+            </div>
+            <div id="history-status" class="inline-status" role="status" aria-live="polite"></div>
+            <div id="history-empty" class="empty-state" role="status">No submitted comments recorded yet.</div>
+            <nav id="history-pagination" class="history-pagination" aria-label="History pages" hidden>
+              <button id="history-previous" class="secondary" type="button">Previous</button>
+              <span id="history-page-summary" aria-live="polite"></span>
+              <button id="history-next" class="secondary" type="button">Next</button>
+            </nav>
+            <div id="history-list" class="history-list" role="list" aria-busy="false"></div>
+          </section>
+
+          <section id="panel-license" class="tab-panel" role="tabpanel" aria-labelledby="tab-license" data-panel="license" hidden>
+            <article id="license-summary-card" class="license-summary-card is-free">
+              <div class="license-plan-heading">
+                <div>
+                  <p class="license-kicker">Current plan</p>
+                  <h2 id="license-plan-name">Free</h2>
+                </div>
+                <span id="license-state-badge" class="license-state-badge">Free</span>
+              </div>
+              <p id="license-message">You are using the Free plan. Basic and Pro upgrades are available.</p>
+              <dl class="license-meta">
+                <div>
+                  <dt>License key</dt>
+                  <dd id="license-key-summary">Not activated</dd>
+                </div>
+                <div>
+                  <dt>Device</dt>
+                  <dd id="license-device-summary">Preparing device…</dd>
+                </div>
+                <div>
+                  <dt>Last checked</dt>
+                  <dd id="license-checked-summary">Not checked yet</dd>
+                </div>
+                <div>
+                  <dt>Valid until</dt>
+                  <dd id="license-validity-summary">—</dd>
+                </div>
+              </dl>
+            </article>
+
+            <section class="paid-plan-options" aria-labelledby="paid-plan-options-title">
+              <div class="paid-plan-options-heading">
+                <p class="license-kicker">Paid upgrades</p>
+                <h2 id="paid-plan-options-title">Basic and Pro</h2>
+              </div>
+              <div class="paid-plan-options-grid">
+                <a id="license-basic-option" class="paid-plan-option" href="https://license.paradane.com/pay/6b528557" target="_blank" rel="noopener noreferrer" aria-label="Buy Basic plan for $4.99 per month, 100 backlinks per day">
+                  <div class="paid-plan-option-heading">
+                    <strong>Basic</strong>
+                    <span id="license-basic-option-status">Available</span>
+                  </div>
+                  <p id="license-basic-option-price" class="paid-plan-price">$4.99 / month</p>
+                  <p>100 backlinks / day</p>
+                  <small>Daily quota</small>
+                </a>
+                <a id="license-pro-option" class="paid-plan-option" href="https://license.paradane.com/pay/043f2306" target="_blank" rel="noopener noreferrer" aria-label="Buy Pro plan for $9.99 per month, 1,000 backlinks per day">
+                  <div class="paid-plan-option-heading">
+                    <strong>Pro</strong>
+                    <span id="license-pro-option-status">Available</span>
+                  </div>
+                  <p id="license-pro-option-price" class="paid-plan-price">$9.99 / month</p>
+                  <p>1,000 backlinks / day</p>
+                  <small>Daily quota</small>
+                </a>
+              </div>
+            </section>
+
+            <div class="license-links">
+              <a id="license-portal-link" class="text-link" href="https://license.paradane.com/portal" target="_blank" rel="noopener noreferrer">Open license portal</a>
+            </div>
+
+            <div class="license-activation-card" role="form" aria-label="License activation">
+              <div class="license-section-heading">
+                <div>
+                  <h2>Activate License</h2>
+                  <p>Enter the license key from your purchase.</p>
+                </div>
+              </div>
+              <label for="license-key-input">
+                <span>License key</span>
+                <input id="license-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="Enter license key" aria-describedby="license-key-help">
+              </label>
+              <small id="license-key-help">Your saved key is never displayed. Deactivate first to switch keys without stranding an activation.</small>
+              <div class="license-actions">
+                <button id="activate-license" type="button">Activate</button>
+                <button id="refresh-license" class="secondary" type="button">Refresh</button>
+                <button id="deactivate-license" class="secondary danger" type="button" hidden>Deactivate</button>
+              </div>
+              <div id="license-status" class="inline-status" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="license-entitlements-card">
+              <div class="license-section-heading">
+                <div>
+                  <h2>Plan access</h2>
+                </div>
+              </div>
+              <ul class="entitlement-list">
+                <li>
+                  <span>Auto-post on Google</span>
+                  <strong id="entitlement-auto-post">Not included</strong>
+                </li>
+                <li>
+                  <span>Faker identity generator</span>
+                  <strong id="entitlement-faker">Not included</strong>
+                </li>
+                <li>
+                  <span>History CSV export</span>
+                  <strong id="entitlement-csv">Not included</strong>
+                </li>
+                <li class="entitlement-with-detail">
+                  <div>
+                    <span id="entitlement-links-label">Daily backlink limit</span>
+                    <small id="entitlement-links-detail">No daily allowance</small>
+                    <div class="quota-meter" role="progressbar" aria-label="Daily backlink quota used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                      <span id="entitlement-links-meter"></span>
+                    </div>
+                  </div>
+                  <strong id="entitlement-links">0</strong>
+                </li>
+                <li class="entitlement-with-detail">
+                  <div>
+                    <span>Active backlink domains</span>
+                    <small id="entitlement-domains-detail">0 active</small>
+                  </div>
+                  <strong id="entitlement-domains">0</strong>
+                </li>
+              </ul>
+            </div>
+
+          </section>
+
+          <div id="form-actions">
+            <div id="status" role="status" aria-live="polite"></div>
+            <button id="save-settings" type="submit">Save settings</button>
+          </div>
+        </form>
+
+        <footer>A Paradane extension. Credentials, crawled contexts, and history are stored locally in Chrome.</footer>
+      </section>
+
+      <datalist id="models">
+        <option value="openrouter/auto"></option>
+        <option value="openai/gpt-4o-mini"></option>
+      </datalist>
+
+      <template id="domain-fields-template">
+        <div class="domain-field-grid">
+          <label class="wide">
+            <span>Website root URL</span>
+            <input data-domain-field="rootUrl" type="text" inputmode="url" placeholder="https://example.com">
+          </label>
+          <label>
+            <span>Maximum depth</span>
+            <input data-domain-field="maxDepth" type="number" min="0" max="5" value="2">
+          </label>
+          <label>
+            <span>Maximum pages</span>
+            <input data-domain-field="maxLinks" type="number" min="1" max="50" value="15">
+          </label>
+          <label class="wide">
+            <span>Excluded paths</span>
+            <textarea data-domain-field="excludedPaths" rows="3" placeholder="/tag/*&#10;/author/*&#10;/checkout"></textarea>
+            <small>One path or URL prefix per line. Use * as a wildcard.</small>
+          </label>
+        </div>
+      </template>
+    </main>
+    <script src="dist/popup.js"></script>
+  </body>
+</html>
