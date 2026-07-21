@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "minimum_chrome_version": "113",
   "name": "WordPress Comment Assistant by Paradane",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Drafts article-aware WordPress comments with OpenRouter and fills forms for review.",
   "icons": {
     "16": "icons/icon16.png",

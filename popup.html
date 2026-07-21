@@ -16,9 +16,9 @@
         </header>
 
         <div class="step-indicator" aria-label="Onboarding progress">
-          <span class="active" data-step-dot="credentials">1</span>
-          <i></i>
-          <span data-step-dot="domain">2</span>
+          <span class="active" data-step-dot="credentials" aria-label="Step 1: Verify OpenRouter" aria-current="step">1</span>
+          <i aria-hidden="true"></i>
+          <span data-step-dot="domain" aria-label="Step 2: Build backlink catalog">2</span>
         </div>
 
         <section id="onboarding-credentials" class="onboarding-step">
@@ -56,22 +56,23 @@
           <p class="eyebrow">OpenRouter-powered</p>
           <div class="header-title-row">
             <h1>Comment Assistant</h1>
-            <span id="header-plan-badge" class="plan-badge" aria-label="Current plan">Free</span>
+            <span id="header-plan-badge" class="plan-badge" aria-label="Current plan" hidden>Free</span>
           </div>
           <p class="intro">Manage generation, identities, backlink domains, and submission history.</p>
         </header>
 
         <nav class="tabs" role="tablist" aria-label="Comment Assistant sections">
-          <button id="tab-api" class="active" type="button" role="tab" aria-selected="true" aria-controls="panel-api" data-tab="api">API</button>
-          <button id="tab-profile" type="button" role="tab" aria-selected="false" aria-controls="panel-profile" data-tab="profile">Profile</button>
-          <button id="tab-domains" type="button" role="tab" aria-selected="false" aria-controls="panel-domains" data-tab="domains">Domains <span id="domain-count">0</span></button>
-          <button id="tab-discovery" type="button" role="tab" aria-selected="false" aria-controls="panel-discovery" data-tab="discovery">Find Sites</button>
-          <button id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="panel-history" data-tab="history">History <span id="history-count">0</span></button>
-          <button id="tab-license" type="button" role="tab" aria-selected="false" aria-controls="panel-license" data-tab="license">License</button>
+          <button id="tab-dashboard" class="active" type="button" role="tab" aria-selected="true" aria-controls="panel-dashboard" data-tab="dashboard">Dashboard</button>
+          <button id="tab-api" type="button" role="tab" aria-selected="false" aria-controls="panel-api" data-tab="api" tabindex="-1">AI</button>
+          <button id="tab-profile" type="button" role="tab" aria-selected="false" aria-controls="panel-profile" data-tab="profile" tabindex="-1">Profile</button>
+          <button id="tab-domains" type="button" role="tab" aria-selected="false" aria-controls="panel-domains" data-tab="domains" tabindex="-1">Domains <span id="domain-count">0</span></button>
+          <button id="tab-discovery" type="button" role="tab" aria-selected="false" aria-controls="panel-discovery" data-tab="discovery" tabindex="-1">Find Sites</button>
+          <button id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="panel-history" data-tab="history" tabindex="-1">History <span id="history-count">0</span></button>
+          <button id="tab-license" type="button" role="tab" aria-selected="false" aria-controls="panel-license" data-tab="license" tabindex="-1">License</button>
         </nav>
 
         <form id="settings-form">
-          <section id="panel-api" class="tab-panel active" role="tabpanel" aria-labelledby="tab-api" data-panel="api">
+          <section id="panel-dashboard" class="tab-panel active" role="tabpanel" aria-labelledby="tab-dashboard" data-panel="dashboard">
             <div class="workflow-option extension-state-option">
               <label class="toggle prominent">
                 <input id="extensionEnabled" name="extensionEnabled" type="checkbox">
@@ -79,6 +80,55 @@
               </label>
               <small>When disabled, all controls and automatic activity stop on Google Search and individual pages. Settings and saved history remain available here.</small>
             </div>
+
+            <section class="dashboard-domain-card" aria-labelledby="dashboard-domain-name">
+              <div class="dashboard-card-heading">
+                <div>
+                  <p class="step-label">Active backlink domain</p>
+                  <h2 id="dashboard-domain-name">No active domain</h2>
+                </div>
+                <button id="manage-dashboard-domain" class="secondary" type="button" aria-label="Manage active backlink domain">Manage</button>
+              </div>
+              <p id="dashboard-domain-root" class="dashboard-domain-root">Add a domain to start tracking domain-specific results.</p>
+              <dl class="dashboard-stats" aria-label="Active domain statistics">
+                <div>
+                  <dt>Catalog pages</dt>
+                  <dd id="dashboard-catalog-pages">0</dd>
+                </div>
+                <div>
+                  <dt>Submitted</dt>
+                  <dd id="dashboard-submitted-links">0</dd>
+                </div>
+                <div>
+                  <dt>Accepted</dt>
+                  <dd id="dashboard-accepted-links">0</dd>
+                </div>
+                <div>
+                  <dt>Pending</dt>
+                  <dd id="dashboard-pending-links">0</dd>
+                </div>
+              </dl>
+              <small id="dashboard-domain-updated">No crawl recorded yet.</small>
+            </section>
+
+            <section id="dashboard-quota-card" class="dashboard-quota-card" aria-labelledby="dashboard-quota-title">
+              <div class="dashboard-quota-heading">
+                <div>
+                  <p class="step-label">Plan-wide usage</p>
+                  <h2 id="dashboard-quota-title">Daily backlink quota</h2>
+                </div>
+                <strong id="dashboard-quota-value">0 / 0</strong>
+              </div>
+              <div id="dashboard-quota-meter" class="quota-meter dashboard-quota-meter" role="progressbar" aria-label="Daily backlink quota used across all domains" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <span id="dashboard-quota-fill"></span>
+              </div>
+              <p id="dashboard-quota-detail">Usage is shared across all active domains.</p>
+            </section>
+
+            <div id="dashboard-status" class="inline-status" role="status" aria-live="polite"></div>
+          </section>
+
+          <section id="panel-api" class="tab-panel" role="tabpanel" aria-labelledby="tab-api" data-panel="api" hidden>
             <label>
               <span>OpenRouter API key <strong>Required</strong></span>
               <input id="apiKey" name="apiKey" type="password" autocomplete="off" placeholder="sk-or-v1-…">
@@ -178,9 +228,9 @@
             </div>
             <small id="domain-license-note" class="license-restriction" hidden></small>
             <div id="domain-fields"></div>
+            <small id="domain-lock-note" class="domain-lock-note" hidden>Crawled domains are read-only. Delete this domain before crawling it again.</small>
             <div class="domain-actions">
-              <button id="start-domain-crawl" type="button">Crawl and analyze</button>
-              <button id="delete-domain" class="secondary danger" type="button">Delete active</button>
+              <button id="delete-domain" class="secondary danger" type="button">Delete domain</button>
             </div>
             <div id="domain-crawl-status" class="inline-status" role="status" aria-live="polite"></div>
             <div id="domain-summary" class="domain-summary"></div>
@@ -240,11 +290,20 @@
                 <p>History is stored locally without an entry cap and is not used for generation.</p>
               </div>
               <div class="history-heading-actions">
+                <button id="toggle-history-filters" class="secondary" type="button" aria-controls="history-filters" aria-expanded="false">Show filters</button>
                 <button id="check-history" class="secondary" type="button">Check due</button>
                 <button id="clear-history" class="secondary danger" type="button">Clear all</button>
               </div>
             </div>
-            <div class="history-filters" aria-label="History filters">
+            <div id="history-filters" class="history-filters" aria-label="History filters" hidden>
+              <label class="history-domain-filter">
+                <span>Backlink domain</span>
+                <select id="history-filter-domain">
+                  <option value="active">Active domain</option>
+                  <option value="all">No domain filter</option>
+                  <option value="none">No backlink domain</option>
+                </select>
+              </label>
               <label>
                 <span>Status</span>
                 <select id="history-filter-status">
@@ -284,7 +343,7 @@
           </section>
 
           <section id="panel-license" class="tab-panel" role="tabpanel" aria-labelledby="tab-license" data-panel="license" hidden>
-            <article id="license-summary-card" class="license-summary-card is-free">
+            <article id="license-summary-card" class="license-summary-card is-free" hidden>
               <div class="license-plan-heading">
                 <div>
                   <p class="license-kicker">Current plan</p>
@@ -387,7 +446,7 @@
                   <div>
                     <span id="entitlement-links-label">Daily backlink limit</span>
                     <small id="entitlement-links-detail">No daily allowance</small>
-                    <div class="quota-meter" role="progressbar" aria-label="Daily backlink quota used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div id="license-quota-meter" class="quota-meter" role="progressbar" aria-label="Daily backlink quota used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                       <span id="entitlement-links-meter"></span>
                     </div>
                   </div>
