@@ -1,4 +1,4 @@
-<img width="746" height="727" alt="image" src="https://github.com/user-attachments/assets/48156659-c638-42a2-b684-ff11a4b688eb" /># Wordpress Comment Assistant
+# Wordpress Comment Assistant
 
 <img width="1280" height="800" alt="02-google-result-actions" src="https://github.com/user-attachments/assets/e8828c3c-597a-4893-b0da-c59d5821d521" />
 
